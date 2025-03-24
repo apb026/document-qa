@@ -1,8 +1,10 @@
-# 📄 Document question answering template
+# 📄 Document Question Answering & Code Documentation Generator
+This is a Streamlit app that provides two main functionalities:
+1. Document Question Answering (Q&A): You can upload a document (e.g., text, markdown, PDF, or DOCX) and ask questions about its content.
 
-A simple Streamlit app that answers questions about an uploaded document via OpenAI's GPT-3.5.
+2. Code Documentation Generator: You can provide a code snippet, and the app will generate detailed documentation, including code explanations and generated images, in a downloadable Word document.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://document-question-answering-template.streamlit.app/)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://document-app-tcucbg8k6fp.streamlit.app/)
 
 ### How to run it on your own machine
 
