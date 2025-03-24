@@ -1,4 +1,5 @@
+google-genai
 streamlit
-openai
-google-genai==x.x.x
-python==3.x
+requests
+docx
+PyPDF2
