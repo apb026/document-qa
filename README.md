@@ -17,5 +17,5 @@ This is a Streamlit app that provides two main functionalities:
 2. Run the app
 
    ```
-   $ streamlit run streamlit_app.py
+   $ streamlit run geminiAppV7.py
    ```
