@@ -7,6 +7,8 @@ from PIL import Image
 import io
 import base64
 import time
+from transformers import pipeline
+
 
 # Function to generate code documentation using Gemini API
 def generate_code_documentation(code_input, api_key):
@@ -26,6 +28,22 @@ def generate_code_documentation(code_input, api_key):
     except Exception as e:
         st.error(f"Error generating code documentation: {str(e)}")
         return None
+
+# # Commented above function and incorporated a new function which uses a hugging face model for chat completion.
+# def generate_code_documentation(code_input):
+#     try:
+#         # Initialize a text generation pipeline with a code generation model
+#         generator = pipeline("text-generation", model="facebook/incoder-1B", tokenizer="facebook/incoder-1B")
+        
+#         # Prepare the input text for generating documentation
+#         code_content = f"Here's a code snippet: {code_input} \n\n---\n\n Can you generate documentation for this code?"
+        
+#         # Generate documentation
+#         doc_answer = generator(code_content, max_length=512)[0]['generated_text']
+#         return doc_answer
+#     except Exception as e:
+#         st.error(f"Error generating code documentation: {str(e)}")
+#         return None
 
 # Function to add styled text in the Word document
 def add_styled_text(doc, text, style=None, is_bold=False, is_italic=False, is_code=False):
@@ -65,51 +83,69 @@ def generate_document_answer_with_few_shot(document_text, question):
 
     return content
 
-# Function to generate project/report file (e.g., Class 12th Chemistry lab experiments)
-def generate_project_report(subject, api_key):
-    try:
-        # Create a new document for the project report
-        doc = Document()
-        doc.add_heading(f"{subject} Project Report", 0)
+# # Function to generate project/report file (e.g., Class 12th Chemistry lab experiments)
+# def generate_project_report(subject, api_key):
+#     try:
+#         # Create a new document for the project report
+#         doc = Document()
+#         doc.add_heading(f"{subject} Project Report", 0)
 
-        # Use Gemini API to generate project details (Lab experiments, for example)
-        prompt = f"Generate a list of detailed lab experiments for Class 12th Chemistry, including the experiment details and images where possible."
-        response = genai.Client(api_key=api_key).models.generate_content(
-            model="gemini-2.0-flash", 
-            contents=[{"parts": [{"text": prompt}]}]
-        )
+#         # Use Gemini API to generate project details (Lab experiments, for example)
+#         prompt = f"Generate a list of detailed lab experiments for Class 12th Chemistry, including the experiment details and images where possible."
+#         response = genai.Client(api_key=api_key).models.generate_content(
+#             model="gemini-2.0-flash", 
+#             contents=[{"parts": [{"text": prompt}]}]
+#         )
 
-        if response.candidates:
-            # Extract the generated text
-            project_content = response.candidates[0].content.parts[0].text
-            add_styled_text(doc, project_content, style="Normal")
+#         if response.candidates:
+#             # Extract the generated text
+#             project_content = response.candidates[0].content.parts[0].text
+#             add_styled_text(doc, project_content, style="Normal")
 
-            # Generate images or diagrams for each experiment (use the description for generating images)
-            experiment_descriptions = project_content.split("\n")  # Assuming each experiment description is on a new line
-            for description in experiment_descriptions:
-                # Generate image for the experiment using Gemini (or other APIs like DALL·E or any text-to-image API)
-                image_url = generate_image_from_prompt(description, api_key)
-                if image_url:
-                    add_styled_text(doc, f"Experiment: {description}", style="Heading 2", is_bold=True)
-                    insert_image_to_word(doc, image_url)
+#             # Generate images or diagrams for each experiment (use the description for generating images)
+#             experiment_descriptions = project_content.split("\n")  # Assuming each experiment description is on a new line
+#             for description in experiment_descriptions:
+#                 # Generate image for the experiment using Gemini (or other APIs like DALL·E or any text-to-image API)
+#                 image_url = generate_image_from_prompt(description, api_key)
+#                 if image_url:
+#                     add_styled_text(doc, f"Experiment: {description}", style="Heading 2", is_bold=True)
+#                     insert_image_to_word(doc, image_url)
         
-            # Save the project report as a Word document
-            doc_io = BytesIO()
-            doc.save(doc_io)
-            doc_io.seek(0)
+#             # Save the project report as a Word document
+#             doc_io = BytesIO()
+#             doc.save(doc_io)
+#             doc_io.seek(0)
 
-            # Provide download button
-            # st.download_button(
-            #     label="Download Project Report with Experiments and Images",
-            #     data=doc_io,
-            #     file_name="chemistry_project_report.docx",
-            #     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            # )
-        else:
-            st.error("Failed to generate the project content.")
+#             # Provide download button
+#             # st.download_button(
+#             #     label="Download Project Report with Experiments and Images",
+#             #     data=doc_io,
+#             #     file_name="chemistry_project_report.docx",
+#             #     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+#             # )
+#         else:
+#             st.error("Failed to generate the project content.")
 
+#     except Exception as e:
+#         st.error(f"An error occurred while generating the project report: {str(e)}")
+
+# Using third model from huggingface here
+def generate_project_report(subject):
+    try:
+        # Initialize a text generation pipeline
+        generator = pipeline("text-generation", model="EleutherAI/gpt-neo-2.7B", tokenizer="EleutherAI/gpt-neo-2.7B")
+        
+        # Prepare the prompt for generating a report
+        prompt = f"Generate a detailed report on the subject: {subject}. Include relevant experiments, steps, and explanations."
+        
+        # Generate the report
+        project_content = generator(prompt, max_length=512)[0]['generated_text']
+        
+        return project_content
     except Exception as e:
-        st.error(f"An error occurred while generating the project report: {str(e)}")
+        st.error(f"Error generating project report: {str(e)}")
+        return None
+
 
 # Function to generate an image based on the description (Gemini or other APIs)
 def generate_image_from_prompt(prompt, api_key, retries=3):
@@ -235,6 +271,7 @@ else:
             try:
                 # Generate code documentation
                 doc_answer = generate_code_documentation(code_input, gemini_api_key)
+                # doc_answer = generate_code_documentation(code_input)
                 
                 if doc_answer:
                     st.write(doc_answer)
